@@ -12,6 +12,8 @@ interface TransactionResult {
   credits: number
   server: string
   amount: number
+  delivered?: boolean
+  pending?: boolean
   error?: string
 }
 
@@ -106,10 +108,10 @@ export default function SuccessPage() {
                 <AlertCircle className="h-8 w-8 text-white" />
               </div>
             </div>
-            <CardTitle className="text-white text-2xl">Payment Failed</CardTitle>
+            <CardTitle className="text-white text-2xl">{result?.pending ? "Payment Processing" : "Payment Failed"}</CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <p className="text-gray-300">{result?.error || "Something went wrong with your payment."}</p>
+            <p className="text-gray-300">{result?.pending ? "Stripe is still confirming your payment. Refresh this page in a moment." : result?.error || "Something went wrong with your payment."}</p>
             <div className="flex flex-col space-y-3">
               <Link href="/">
                 <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
@@ -151,13 +153,12 @@ export default function SuccessPage() {
             <p>Session ID: {sessionId.slice(0, 20)}...</p>
             <p>Amount: ${result.amount.toFixed(2)}</p>
             <p>Server: {result.server}</p>
-            <p>Status: ✅ Delivered</p>
+            <p>Status: {result.delivered ? "✅ Delivered" : "⏳ Payment confirmed; delivery pending"}</p>
           </div>
 
           <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4">
             <p className="text-green-300 text-sm">
-              🎉 Your credits have been instantly delivered to your account! You can start using them right away
-              in-game.
+              {result.delivered ? "🎉 Your credits have been delivered to your account." : "Your payment is confirmed. The store is waiting for your verified game-account link before delivering credits."}
             </p>
           </div>
 
