@@ -1,0 +1,51 @@
+name: Diagnose patched pnpm install
+
+on:
+  push:
+    branches:
+      - "security/next-15-2-8-main-ready"
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Capture lockfile installation diagnostics
+        run: |
+          set +e
+          pnpm install --frozen-lockfile > /tmp/pnpm-install.log 2>&1
+          status=$?
+          tail -n 50 /tmp/pnpm-install.log
+          if [ "$status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          for line in Path("/tmp/pnpm-install.log").read_text(errors="replace").splitlines()[-50:]:
+              safe = line.replace("%", "%25").replace("", "%0D").replace("
+", "%0A")
+              print("::error title=pnpm install::" + safe)
+          PY
+          fi
+          exit $status
+      - name: Remove temporary diagnostic workflow
+        if: always()
+        run: |
+          rm -f .github/workflows/temporary-pnpm-diagnostics.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/temporary-pnpm-diagnostics.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: remove temporary pnpm diagnostics"
+          git push origin "HEAD:$GITHUB_REF_NAME"
