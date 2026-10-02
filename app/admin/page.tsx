@@ -27,8 +27,8 @@ export default async function AdminPage() {
 
   const transactions = (transactionsResult.data ?? []).map((transaction) => ({
     transaction_number: transaction.transaction_number || ("TXN-" + transaction.id.slice(-8)),
-    username: transaction.users?.username || transaction.users?.discord_id || "Linked player",
-    package_name: transaction.credit_packages?.name || "Credit bundle",
+    username: transaction.users?.[0]?.username || transaction.users?.[0]?.discord_id || "Linked player",
+    package_name: transaction.credit_packages?.[0]?.name || "Credit bundle",
     final_amount: transaction.final_amount,
     status: transaction.status,
     created_at: transaction.created_at,
