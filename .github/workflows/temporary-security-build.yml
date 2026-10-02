@@ -1,0 +1,45 @@
+name: Temporary Next.js security build check
+
+on:
+  push:
+    branches:
+      - "security/next-15-2-8-main-ready"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-placeholder
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-placeholder
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
+      ADMIN_DISCORD_IDS: "123456789012345678"
+      APP_URL: https://example.invalid
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Remove temporary build workflow
+        if: always()
+        run: |
+          rm -f .github/workflows/temporary-security-build.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/temporary-security-build.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: remove temporary security build workflow"
+          git push origin "HEAD:$GITHUB_REF_NAME"
