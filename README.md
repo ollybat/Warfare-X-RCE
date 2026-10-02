@@ -51,7 +51,7 @@ Railway uses railway.json to install, build, start the app, and check /api/healt
 
 ## Admin access
 
-Only IDs in server-side ADMIN_DISCORD_IDS can use admin API routes. The legacy NEXT_PUBLIC_ADMIN_DISCORD_IDS is accepted as a fallback, but prefer the private variable. Admin UI visibility is not an authorization control; the API enforces the list.
+Set ADMIN_DISCORD_IDS for server-side authorization. If the admin-only navigation should be visible, also set NEXT_PUBLIC_ADMIN_DISCORD_IDS to the same comma-separated IDs; that list is visible to users and is not a secret. Admin UI visibility is not authorization—the API still checks the configured ID list.
 
 ## Discord merge notification
 
