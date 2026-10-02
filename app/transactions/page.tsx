@@ -24,7 +24,7 @@ interface Transaction {
 }
 
 export default function TransactionsPage() {
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
