@@ -30,13 +30,7 @@ jobs:
           status=$?
           tail -n 50 /tmp/pnpm-install.log
           if [ "$status" -ne 0 ]; then
-            python3 - <<'PY'
-          from pathlib import Path
-          for line in Path("/tmp/pnpm-install.log").read_text(errors="replace").splitlines()[-50:]:
-              safe = line.replace("%", "%25").replace("", "%0D").replace("
-", "%0A")
-              print("::error title=pnpm install::" + safe)
-          PY
+            tail -n 50 /tmp/pnpm-install.log | while IFS= read -r line; do echo "::error title=pnpm-install::$line"; done
           fi
           exit $status
       - name: Remove temporary diagnostic workflow
